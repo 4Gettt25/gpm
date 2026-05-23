@@ -38,6 +38,7 @@ tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
+toml_edit = "0.22"
 
 # Error handling
 thiserror = "1"
@@ -49,6 +50,13 @@ async-trait = "0.1"
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# HTTP client (toolchain binary downloads)
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+# Archive extraction (uv binary release tarballs)
+flate2 = "1"
+tar = "0.4"
 
 # Internal crates
 gpm-graph = { path = "crates/gpm-graph" }

@@ -1,4 +1,5 @@
 use crate::manifest::ManifestGraph;
+use crate::toolchain::ToolchainManager;
 use crate::trait_def::EcosystemAdapter;
 use anyhow::{Context, Result};
 use gpm_graph::{DependencyKind, DependsOnEdge, Ecosystem, PackageNode, VersionNode};
@@ -108,7 +109,8 @@ impl EcosystemAdapter for CargoAdapter {
     }
 
     async fn install(&self, dir: &Path) -> Result<()> {
-        let status = tokio::process::Command::new("cargo")
+        let cargo = ToolchainManager::load()?.resolve("cargo").await?;
+        let status = tokio::process::Command::new(&cargo)
             .arg("build")
             .current_dir(dir)
             .status()
@@ -119,7 +121,8 @@ impl EcosystemAdapter for CargoAdapter {
     }
 
     async fn add(&self, dir: &Path, package: &str, dev: bool) -> Result<()> {
-        let mut cmd = tokio::process::Command::new("cargo");
+        let cargo = ToolchainManager::load()?.resolve("cargo").await?;
+        let mut cmd = tokio::process::Command::new(&cargo);
         cmd.arg("add").arg(package).current_dir(dir);
         if dev {
             cmd.arg("--dev");
@@ -130,7 +133,8 @@ impl EcosystemAdapter for CargoAdapter {
     }
 
     async fn remove(&self, dir: &Path, package: &str) -> Result<()> {
-        let status = tokio::process::Command::new("cargo")
+        let cargo = ToolchainManager::load()?.resolve("cargo").await?;
+        let status = tokio::process::Command::new(&cargo)
             .args(["remove", package])
             .current_dir(dir)
             .status()

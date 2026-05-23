@@ -1,4 +1,5 @@
 use crate::manifest::ManifestGraph;
+use crate::toolchain::ToolchainManager;
 use crate::trait_def::EcosystemAdapter;
 use anyhow::{Context, Result};
 use gpm_graph::{DependencyKind, DependsOnEdge, Ecosystem, PackageNode, VersionNode};
@@ -98,7 +99,8 @@ impl EcosystemAdapter for NpmAdapter {
     }
 
     async fn install(&self, dir: &Path) -> Result<()> {
-        let status = tokio::process::Command::new("npm")
+        let npm = ToolchainManager::load()?.resolve("npm").await?;
+        let status = tokio::process::Command::new(&npm)
             .arg("install")
             .current_dir(dir)
             .status()
@@ -109,7 +111,8 @@ impl EcosystemAdapter for NpmAdapter {
     }
 
     async fn add(&self, dir: &Path, package: &str, dev: bool) -> Result<()> {
-        let mut cmd = tokio::process::Command::new("npm");
+        let npm = ToolchainManager::load()?.resolve("npm").await?;
+        let mut cmd = tokio::process::Command::new(&npm);
         cmd.arg("install").arg(package).current_dir(dir);
         if dev {
             cmd.arg("--save-dev");
@@ -119,7 +122,8 @@ impl EcosystemAdapter for NpmAdapter {
     }
 
     async fn remove(&self, dir: &Path, package: &str) -> Result<()> {
-        tokio::process::Command::new("npm")
+        let npm = ToolchainManager::load()?.resolve("npm").await?;
+        tokio::process::Command::new(&npm)
             .args(["uninstall", package])
             .current_dir(dir)
             .status()

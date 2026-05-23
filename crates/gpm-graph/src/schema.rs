@@ -31,7 +31,7 @@ impl std::fmt::Display for Ecosystem {
             Ecosystem::RubyGems => "rubygems",
             Ecosystem::Hex => "hex",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -151,6 +151,6 @@ impl std::fmt::Display for DependencyKind {
             DependencyKind::Peer => "peer",
             DependencyKind::Build => "build",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }

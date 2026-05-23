@@ -13,21 +13,26 @@ use crate::schema::{DependsOnEdge, PackageNode, VersionNode};
 // Replace this block with:
 //   use kuzu::{Connection, Database, SystemConfig};
 
+#[allow(dead_code)]
 struct StubDb {
     path: String,
 }
 
 struct StubConn;
 
+#[allow(clippy::unnecessary_wraps, clippy::unused_self)]
 impl StubDb {
     fn open(path: &str) -> Result<Self, GraphError> {
-        Ok(StubDb { path: path.to_string() })
+        Ok(StubDb {
+            path: path.to_string(),
+        })
     }
     fn connect(&self) -> Result<StubConn, GraphError> {
         Ok(StubConn)
     }
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::unused_self)]
 impl StubConn {
     fn query(&self, cypher: &str) -> Result<Vec<String>, GraphError> {
         debug!(cypher, "stub query");
@@ -71,7 +76,6 @@ impl GraphStore {
                 description STRING,
                 PRIMARY KEY (name, ecosystem)
             )",
-
             "CREATE NODE TABLE IF NOT EXISTS Version (
                 id           STRING,   -- '{ecosystem}:{name}:{semver}'
                 name         STRING,
@@ -82,19 +86,16 @@ impl GraphStore {
                 yanked       BOOLEAN,
                 PRIMARY KEY (id)
             )",
-
             "CREATE NODE TABLE IF NOT EXISTS Project (
                 name      STRING,
                 root_path STRING,
                 PRIMARY KEY (root_path)
             )",
-
             "CREATE NODE TABLE IF NOT EXISTS Manifest (
                 path      STRING,
                 ecosystem STRING,
                 PRIMARY KEY (path)
             )",
-
             "CREATE NODE TABLE IF NOT EXISTS Vulnerability (
                 cve_id   STRING,
                 cvss     DOUBLE,
@@ -102,38 +103,31 @@ impl GraphStore {
                 summary  STRING,
                 PRIMARY KEY (cve_id)
             )",
-
             "CREATE NODE TABLE IF NOT EXISTS License (
                 spdx_id      STRING,
                 is_osi       BOOLEAN,
                 is_copyleft  BOOLEAN,
                 PRIMARY KEY (spdx_id)
             )",
-
             // ── Relationship tables ──────────────────────────────────────
             "CREATE REL TABLE IF NOT EXISTS HAS_VERSION (
                 FROM Package TO Version
             )",
-
             // Core edge: Version → Version dependency
             "CREATE REL TABLE IF NOT EXISTS DEPENDS_ON (
                 FROM Version TO Version,
                 kind        STRING,
                 version_req STRING
             )",
-
             "CREATE REL TABLE IF NOT EXISTS HAS_MANIFEST (
                 FROM Project TO Manifest
             )",
-
             "CREATE REL TABLE IF NOT EXISTS REQUIRES (
                 FROM Manifest TO Version
             )",
-
             "CREATE REL TABLE IF NOT EXISTS HAS_VULN (
                 FROM Version TO Vulnerability
             )",
-
             "CREATE REL TABLE IF NOT EXISTS LICENSED_UNDER (
                 FROM Version TO License
             )",
@@ -187,10 +181,7 @@ impl GraphStore {
         let cypher = format!(
             "MATCH (a:Version {{id: '{}'}}), (b:Version {{id: '{}'}})
              MERGE (a)-[r:DEPENDS_ON {{kind: '{}', version_req: '{}'}}]->(b)",
-            edge.from_id,
-            edge.to_id,
-            edge.kind,
-            edge.version_req,
+            edge.from_id, edge.to_id, edge.kind, edge.version_req,
         );
         self.conn.query(&cypher)?;
         Ok(())
@@ -222,11 +213,7 @@ impl GraphStore {
     }
 
     /// All versions in the project transitively affected by a CVE.
-    pub fn blast_radius(
-        &self,
-        project: &str,
-        cve_id: &str,
-    ) -> Result<Vec<String>, GraphError> {
+    pub fn blast_radius(&self, project: &str, cve_id: &str) -> Result<Vec<String>, GraphError> {
         let cypher = format!(
             "MATCH (v:Version)-[:DEPENDS_ON*]->(vv:Version)
                    -[:HAS_VULN]->(vuln:Vulnerability {{cve_id: '{cve_id}'}})

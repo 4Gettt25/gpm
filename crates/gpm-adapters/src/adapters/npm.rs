@@ -1,10 +1,10 @@
-use std::path::Path;
+use crate::manifest::ManifestGraph;
+use crate::trait_def::EcosystemAdapter;
 use anyhow::{Context, Result};
+use gpm_graph::{DependencyKind, DependsOnEdge, Ecosystem, PackageNode, VersionNode};
 use serde::Deserialize;
 use std::collections::HashMap;
-use gpm_graph::{Ecosystem, PackageNode, VersionNode, DependsOnEdge, DependencyKind};
-use crate::trait_def::EcosystemAdapter;
-use crate::manifest::ManifestGraph;
+use std::path::Path;
 
 pub struct NpmAdapter;
 
@@ -24,8 +24,12 @@ struct PackageJson {
 
 #[async_trait::async_trait]
 impl EcosystemAdapter for NpmAdapter {
-    fn ecosystem(&self) -> Ecosystem { Ecosystem::Npm }
-    fn name(&self) -> &'static str { "npm" }
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Npm
+    }
+    fn name(&self) -> &'static str {
+        "npm"
+    }
 
     fn detect(&self, dir: &Path) -> bool {
         dir.join("package.json").exists()
@@ -107,7 +111,9 @@ impl EcosystemAdapter for NpmAdapter {
     async fn add(&self, dir: &Path, package: &str, dev: bool) -> Result<()> {
         let mut cmd = tokio::process::Command::new("npm");
         cmd.arg("install").arg(package).current_dir(dir);
-        if dev { cmd.arg("--save-dev"); }
+        if dev {
+            cmd.arg("--save-dev");
+        }
         cmd.status().await.context("running npm install")?;
         Ok(())
     }

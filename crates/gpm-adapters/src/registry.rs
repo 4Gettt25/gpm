@@ -1,7 +1,7 @@
+use crate::adapters::{CargoAdapter, ComposerAdapter, NpmAdapter, PypiAdapter};
+use crate::trait_def::EcosystemAdapter;
 use std::path::Path;
 use std::sync::Arc;
-use crate::trait_def::EcosystemAdapter;
-use crate::adapters::{CargoAdapter, NpmAdapter, PypiAdapter, ComposerAdapter};
 
 /// Holds all registered adapters.
 /// Call `detect(dir)` to find which ones apply to a given project directory.

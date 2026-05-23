@@ -1,8 +1,8 @@
-use std::path::Path;
+use crate::manifest::ManifestGraph;
+use crate::trait_def::EcosystemAdapter;
 use anyhow::Result;
 use gpm_graph::Ecosystem;
-use crate::trait_def::EcosystemAdapter;
-use crate::manifest::ManifestGraph;
+use std::path::Path;
 
 // ── PyPI / uv adapter ────────────────────────────────────────────────────────
 
@@ -10,8 +10,12 @@ pub struct PypiAdapter;
 
 #[async_trait::async_trait]
 impl EcosystemAdapter for PypiAdapter {
-    fn ecosystem(&self) -> Ecosystem { Ecosystem::PyPI }
-    fn name(&self) -> &'static str { "pypi" }
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::PyPI
+    }
+    fn name(&self) -> &'static str {
+        "pypi"
+    }
 
     fn detect(&self, dir: &Path) -> bool {
         dir.join("pyproject.toml").exists()
@@ -67,8 +71,12 @@ pub struct ComposerAdapter;
 
 #[async_trait::async_trait]
 impl EcosystemAdapter for ComposerAdapter {
-    fn ecosystem(&self) -> Ecosystem { Ecosystem::Composer }
-    fn name(&self) -> &'static str { "composer" }
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Composer
+    }
+    fn name(&self) -> &'static str {
+        "composer"
+    }
 
     fn detect(&self, dir: &Path) -> bool {
         dir.join("composer.json").exists()
@@ -92,7 +100,9 @@ impl EcosystemAdapter for ComposerAdapter {
     async fn add(&self, dir: &Path, package: &str, dev: bool) -> Result<()> {
         let mut cmd = tokio::process::Command::new("composer");
         cmd.arg("require").arg(package).current_dir(dir);
-        if dev { cmd.arg("--dev"); }
+        if dev {
+            cmd.arg("--dev");
+        }
         cmd.status().await?;
         Ok(())
     }

@@ -11,7 +11,7 @@ use gpm_core::{Config, Engine};
     name = "gpm",
     about = "graph package manager — cross-language dependency intelligence",
     version,
-    propagate_version = true,
+    propagate_version = true
 )]
 struct Cli {
     /// Override the project root directory
@@ -131,10 +131,10 @@ async fn main() -> Result<()> {
 
         Commands::Why { package, project } => {
             let proj = project.unwrap_or_else(|| {
-                config.project_root
-                    .file_name()
-                    .map(|n| n.to_string_lossy().to_string())
-                    .unwrap_or_else(|| "project".to_string())
+                config.project_root.file_name().map_or_else(
+                    || "project".to_string(),
+                    |n| n.to_string_lossy().to_string(),
+                )
             });
             let chain = engine.why(&proj, &package)?;
             if chain.is_empty() {
@@ -147,16 +147,18 @@ async fn main() -> Result<()> {
 
         Commands::Audit { cve } => {
             if let Some(cve_id) = cve {
-                let proj = config.project_root
-                    .file_name()
-                    .map(|n| n.to_string_lossy().to_string())
-                    .unwrap_or_else(|| "project".to_string());
+                let proj = config.project_root.file_name().map_or_else(
+                    || "project".to_string(),
+                    |n| n.to_string_lossy().to_string(),
+                );
                 let hits = engine.audit_cve(&proj, &cve_id)?;
                 if hits.is_empty() {
                     println!("✓ No packages affected by {cve_id}");
                 } else {
                     println!("⚠ Packages affected by {cve_id}:");
-                    for h in hits { println!("  {h}"); }
+                    for h in hits {
+                        println!("  {h}");
+                    }
                 }
             } else {
                 println!("Running full audit…");
@@ -166,13 +168,15 @@ async fn main() -> Result<()> {
         }
 
         Commands::Licenses { copyleft } => {
-            let proj = config.project_root
-                .file_name()
-                .map(|n| n.to_string_lossy().to_string())
-                .unwrap_or_else(|| "project".to_string());
+            let proj = config.project_root.file_name().map_or_else(
+                || "project".to_string(),
+                |n| n.to_string_lossy().to_string(),
+            );
             if copyleft {
                 let deps = engine.licenses(&proj)?;
-                for d in deps { println!("{d}"); }
+                for d in deps {
+                    println!("{d}");
+                }
             } else {
                 println!("(full license list not yet implemented — use --copyleft for now)");
             }
@@ -184,7 +188,9 @@ async fn main() -> Result<()> {
 
         Commands::Query { cypher } => {
             let rows = engine.store.query_raw(&cypher)?;
-            for r in rows { println!("{r}"); }
+            for r in rows {
+                println!("{r}");
+            }
         }
     }
 

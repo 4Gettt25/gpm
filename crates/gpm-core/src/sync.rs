@@ -1,12 +1,12 @@
 // sync.rs — writes a ManifestGraph into the GraphStore
 use anyhow::Result;
-use gpm_graph::GraphStore;
 use gpm_adapters::ManifestGraph;
+use gpm_graph::GraphStore;
 
 pub struct GraphSync;
 
 impl GraphSync {
-    pub fn write_to_store(store: &GraphStore, graph: ManifestGraph) -> Result<()> {
+    pub fn write_to_store(store: &GraphStore, graph: &ManifestGraph) -> Result<()> {
         for pkg in &graph.packages {
             store.upsert_package(pkg)?;
         }

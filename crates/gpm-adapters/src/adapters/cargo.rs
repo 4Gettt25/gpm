@@ -1,15 +1,19 @@
-use std::path::Path;
-use anyhow::{Context, Result};
-use gpm_graph::{Ecosystem, PackageNode, VersionNode, DependsOnEdge, DependencyKind};
-use crate::trait_def::EcosystemAdapter;
 use crate::manifest::ManifestGraph;
+use crate::trait_def::EcosystemAdapter;
+use anyhow::{Context, Result};
+use gpm_graph::{DependencyKind, DependsOnEdge, Ecosystem, PackageNode, VersionNode};
+use std::path::Path;
 
 pub struct CargoAdapter;
 
 #[async_trait::async_trait]
 impl EcosystemAdapter for CargoAdapter {
-    fn ecosystem(&self) -> Ecosystem { Ecosystem::Cargo }
-    fn name(&self) -> &'static str { "cargo" }
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Cargo
+    }
+    fn name(&self) -> &'static str {
+        "cargo"
+    }
 
     fn detect(&self, dir: &Path) -> bool {
         dir.join("Cargo.toml").exists()
@@ -47,7 +51,8 @@ impl EcosystemAdapter for CargoAdapter {
         graph.packages.push(PackageNode {
             name: root_name.to_string(),
             ecosystem: Ecosystem::Cargo,
-            description: doc.get("package")
+            description: doc
+                .get("package")
                 .and_then(|p| p.get("description"))
                 .and_then(|d| d.as_str())
                 .map(String::from),
@@ -116,7 +121,9 @@ impl EcosystemAdapter for CargoAdapter {
     async fn add(&self, dir: &Path, package: &str, dev: bool) -> Result<()> {
         let mut cmd = tokio::process::Command::new("cargo");
         cmd.arg("add").arg(package).current_dir(dir);
-        if dev { cmd.arg("--dev"); }
+        if dev {
+            cmd.arg("--dev");
+        }
         let status = cmd.status().await.context("running cargo add")?;
         anyhow::ensure!(status.success(), "cargo add failed");
         Ok(())

@@ -1,13 +1,16 @@
-// deps_dev.rs
-// Client for Google's deps.dev API — used for transitive dep data and CVE enrichment.
+// deps_dev.rs — client for Google's deps.dev API, used for transitive dep data and CVE enrichment.
 // API docs: https://deps.dev/
 
 use anyhow::Result;
 
+#[derive(Default)]
 pub struct DepsDev;
 
+#[allow(clippy::unused_async)]
 impl DepsDev {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 
     /// Fetch transitive dependencies for a specific package version.
     /// GET https://api.deps.dev/v3alpha/systems/{system}/packages/{name}/versions/{version}:dependencies

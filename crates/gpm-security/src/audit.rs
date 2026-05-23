@@ -42,6 +42,7 @@ impl AuditReport {
 
 pub struct Auditor;
 
+#[allow(clippy::unused_async)]
 impl Auditor {
     pub async fn run(&self, _project: &str) -> Result<AuditReport> {
         // TODO: query OSV for each installed version, then run blast_radius graph query

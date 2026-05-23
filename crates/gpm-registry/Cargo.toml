@@ -3,6 +3,9 @@ name = "gpm-registry"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 gpm-graph = { workspace = true }
 serde = { workspace = true }

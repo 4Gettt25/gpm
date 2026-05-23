@@ -1,13 +1,12 @@
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use anyhow::Result;
+use std::path::PathBuf;
+use std::sync::Arc;
 use tracing::info;
 
-use gpm_graph::GraphStore;
-use gpm_adapters::AdapterRegistry;
 use crate::config::Config;
 use crate::sync::GraphSync;
-use crate::query::QueryPlanner;
+use gpm_adapters::AdapterRegistry;
+use gpm_graph::GraphStore;
 
 /// The central handle for all gpm operations.
 /// Instantiate once per CLI invocation.
@@ -42,7 +41,7 @@ impl Engine {
         for adapter in &adapters {
             info!(ecosystem = adapter.name(), "syncing manifest");
             let graph = adapter.parse_manifest(&self.project_root).await?;
-            GraphSync::write_to_store(&self.store, graph)?;
+            GraphSync::write_to_store(&self.store, &graph)?;
         }
         Ok(())
     }
@@ -82,16 +81,15 @@ impl Engine {
         ecosystem: Option<&str>,
     ) -> Result<Arc<dyn gpm_adapters::EcosystemAdapter>> {
         if let Some(name) = ecosystem {
-            self.registry.get(name)
-                .ok_or_else(|| anyhow::anyhow!("unknown ecosystem: {}", name))
+            self.registry
+                .get(name)
+                .ok_or_else(|| anyhow::anyhow!("unknown ecosystem: {name}"))
         } else {
             let detected = self.registry.detect(&self.project_root);
             match detected.len() {
                 0 => anyhow::bail!("no ecosystem detected"),
                 1 => Ok(detected.into_iter().next().unwrap()),
-                _ => anyhow::bail!(
-                    "multiple ecosystems detected — use --ecosystem to specify one"
-                ),
+                _ => anyhow::bail!("multiple ecosystems detected — use --ecosystem to specify one"),
             }
         }
     }

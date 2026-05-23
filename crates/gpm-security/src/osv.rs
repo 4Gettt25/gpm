@@ -3,10 +3,14 @@
 
 use anyhow::Result;
 
+#[derive(Default)]
 pub struct OsvClient;
 
+#[allow(clippy::unused_async)]
 impl OsvClient {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 
     pub async fn query_package(
         &self,

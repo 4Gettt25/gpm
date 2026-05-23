@@ -1,7 +1,7 @@
-use std::path::Path;
+use crate::manifest::ManifestGraph;
 use anyhow::Result;
 use gpm_graph::Ecosystem;
-use crate::manifest::ManifestGraph;
+use std::path::Path;
 
 /// The extension point for every language ecosystem.
 ///

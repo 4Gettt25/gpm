@@ -1,14 +1,17 @@
-// client.rs
 // Registry HTTP client. reqwest + in-memory cache.
 // Add `reqwest` and `moka` to Cargo.toml when wiring up real HTTP.
 
 use anyhow::Result;
 use gpm_graph::Ecosystem;
 
+#[derive(Default)]
 pub struct RegistryClient;
 
+#[allow(clippy::unused_async)]
 impl RegistryClient {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 
     /// Fetch the latest stable version of a package from its registry.
     pub async fn latest_version(&self, ecosystem: &Ecosystem, name: &str) -> Result<String> {

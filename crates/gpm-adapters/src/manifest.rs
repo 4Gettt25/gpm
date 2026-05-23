@@ -1,4 +1,4 @@
-use gpm_graph::{PackageNode, VersionNode, DependsOnEdge};
+use gpm_graph::{DependsOnEdge, PackageNode, VersionNode};
 
 /// The parsed output of any manifest file, expressed as graph nodes + edges.
 /// This is what every EcosystemAdapter returns from `parse_manifest`.
@@ -6,8 +6,8 @@ use gpm_graph::{PackageNode, VersionNode, DependsOnEdge};
 /// gpm-core then writes this into the GraphStore.
 #[derive(Debug, Default)]
 pub struct ManifestGraph {
-    pub packages:  Vec<PackageNode>,
-    pub versions:  Vec<VersionNode>,
+    pub packages: Vec<PackageNode>,
+    pub versions: Vec<VersionNode>,
     pub depends_on: Vec<DependsOnEdge>,
 }
 

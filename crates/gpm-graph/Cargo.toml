@@ -1,0 +1,17 @@
+[package]
+name = "gpm-graph"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+# KuzuDB embedded graph database
+# kuzu = "0.6"   # uncomment once kuzu crate is stable on crates.io
+                 # for now we stub the interface
+
+chrono = { version = "0.4", features = ["serde"] }

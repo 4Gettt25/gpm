@@ -1,0 +1,23 @@
+[package]
+name = "gpm-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "gpm"
+path = "src/main.rs"
+
+[dependencies]
+gpm-core = { workspace = true }
+gpm-graph = { workspace = true }
+gpm-adapters = { workspace = true }
+gpm-security = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+
+# CLI arg parsing
+clap = { version = "4.5.38", features = ["derive"] }

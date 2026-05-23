@@ -1,0 +1,44 @@
+[workspace]
+members = [
+    "crates/gpm-cli",
+    "crates/gpm-core",
+    "crates/gpm-graph",
+    "crates/gpm-adapters",
+    "crates/gpm-registry",
+    "crates/gpm-security",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Felix"]
+license = "MIT"
+repository = "https://github.com/4Gettt25/gpm"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Async trait support
+async-trait = "0.1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Internal crates
+gpm-graph = { path = "crates/gpm-graph" }
+gpm-core = { path = "crates/gpm-core" }
+gpm-adapters = { path = "crates/gpm-adapters" }
+gpm-registry = { path = "crates/gpm-registry" }
+gpm-security = { path = "crates/gpm-security" }

@@ -115,21 +115,27 @@ async fn parse_pyproject(dir: &Path) -> Result<ManifestGraph> {
     let pep621 = doc.get("project");
     let poetry = doc.get("tool").and_then(|t| t.get("poetry"));
 
-    let (root_name, root_version, root_desc) = if let Some(p) = pep621 {
-        (
-            p.get("name")
-                .and_then(|v| v.as_str())
-                .unwrap_or("unknown")
-                .to_string(),
-            p.get("version")
-                .and_then(|v| v.as_str())
-                .unwrap_or("0.0.0")
-                .to_string(),
-            p.get("description")
-                .and_then(|v| v.as_str())
-                .map(String::from),
-        )
-    } else if let Some(p) = poetry {
+    let (root_name, root_version, root_desc) = extract_pyproject_root(pep621, poetry);
+    let root_ver = make_version(&root_name, &root_version, Ecosystem::PyPI);
+    graph.packages.push(PackageNode {
+        name: root_name,
+        ecosystem: Ecosystem::PyPI,
+        description: root_desc,
+    });
+    graph.versions.push(root_ver.clone());
+
+    push_pep621_deps(&mut graph, &root_ver, pep621);
+    push_poetry_deps(&mut graph, &root_ver, poetry);
+
+    Ok(graph)
+}
+
+fn extract_pyproject_root(
+    pep621: Option<&toml::Value>,
+    poetry: Option<&toml::Value>,
+) -> (String, String, Option<String>) {
+    let section = pep621.or(poetry);
+    if let Some(p) = section {
         (
             p.get("name")
                 .and_then(|v| v.as_str())
@@ -145,29 +151,25 @@ async fn parse_pyproject(dir: &Path) -> Result<ManifestGraph> {
         )
     } else {
         ("unknown".to_string(), "0.0.0".to_string(), None)
-    };
+    }
+}
 
-    let root_ver = make_version(&root_name, &root_version, Ecosystem::PyPI);
-    graph.packages.push(PackageNode {
-        name: root_name,
-        ecosystem: Ecosystem::PyPI,
-        description: root_desc,
-    });
-    graph.versions.push(root_ver.clone());
-
-    // PEP 621 [project.dependencies]
+fn push_pep621_deps(
+    graph: &mut ManifestGraph,
+    root_ver: &VersionNode,
+    pep621: Option<&toml::Value>,
+) {
     if let Some(arr) = pep621
         .and_then(|p| p.get("dependencies"))
         .and_then(|d| d.as_array())
     {
         for dep in arr {
             if let Some(spec) = dep.as_str() {
-                push_pep508(&mut graph, &root_ver, spec, DependencyKind::Normal);
+                push_pep508(graph, root_ver, spec, DependencyKind::Normal);
             }
         }
     }
 
-    // PEP 621 [project.optional-dependencies.*]
     if let Some(groups) = pep621
         .and_then(|p| p.get("optional-dependencies"))
         .and_then(|d| d.as_table())
@@ -176,14 +178,19 @@ async fn parse_pyproject(dir: &Path) -> Result<ManifestGraph> {
             if let Some(arr) = deps.as_array() {
                 for dep in arr {
                     if let Some(spec) = dep.as_str() {
-                        push_pep508(&mut graph, &root_ver, spec, DependencyKind::Optional);
+                        push_pep508(graph, root_ver, spec, DependencyKind::Optional);
                     }
                 }
             }
         }
     }
+}
 
-    // Poetry [tool.poetry.dependencies]
+fn push_poetry_deps(
+    graph: &mut ManifestGraph,
+    root_ver: &VersionNode,
+    poetry: Option<&toml::Value>,
+) {
     if let Some(deps) = poetry
         .and_then(|p| p.get("dependencies"))
         .and_then(|d| d.as_table())
@@ -192,33 +199,16 @@ async fn parse_pyproject(dir: &Path) -> Result<ManifestGraph> {
             if name == "python" {
                 continue;
             }
-            let req = poetry_req(val);
-            push_dep_raw(
-                &mut graph,
-                &root_ver,
-                name,
-                &req,
-                Ecosystem::PyPI,
-                DependencyKind::Normal,
-            );
+            push_dep_raw(graph, root_ver, name, &poetry_req(val), Ecosystem::PyPI, DependencyKind::Normal);
         }
     }
 
-    // Poetry [tool.poetry.dev-dependencies]
     if let Some(deps) = poetry
         .and_then(|p| p.get("dev-dependencies"))
         .and_then(|d| d.as_table())
     {
         for (name, val) in deps {
-            let req = poetry_req(val);
-            push_dep_raw(
-                &mut graph,
-                &root_ver,
-                name,
-                &req,
-                Ecosystem::PyPI,
-                DependencyKind::Dev,
-            );
+            push_dep_raw(graph, root_ver, name, &poetry_req(val), Ecosystem::PyPI, DependencyKind::Dev);
         }
     }
 
@@ -230,21 +220,11 @@ async fn parse_pyproject(dir: &Path) -> Result<ManifestGraph> {
         for (_group_name, group) in groups {
             if let Some(deps) = group.get("dependencies").and_then(|d| d.as_table()) {
                 for (name, val) in deps {
-                    let req = poetry_req(val);
-                    push_dep_raw(
-                        &mut graph,
-                        &root_ver,
-                        name,
-                        &req,
-                        Ecosystem::PyPI,
-                        DependencyKind::Dev,
-                    );
+                    push_dep_raw(graph, root_ver, name, &poetry_req(val), Ecosystem::PyPI, DependencyKind::Dev);
                 }
             }
         }
     }
-
-    Ok(graph)
 }
 
 async fn parse_requirements_txt(dir: &Path) -> Result<ManifestGraph> {
